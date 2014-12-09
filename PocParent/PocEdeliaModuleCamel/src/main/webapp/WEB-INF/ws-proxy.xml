@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:cxf="http://camel.apache.org/schema/cxf"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring
+       http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/util 
+       http://www.springframework.org/schema/util/spring-util.xsd 
+       http://camel.apache.org/schema/cxf 
+       http://camel.apache.org/schema/cxf/camel-cxf.xsd 
+       http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+
+<!-- Add for web service -->
+    <import resource="classpath:META-INF/cxf/cxf.xml" />
+    <!-- import resource="classpath:META-INF/cxf/cxf-extension-soap.xml" / -->
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+
+    <!-- CXF web service we use as the front end ex:http://localhost:9023/ClientService -->
+    <cxf:cxfEndpoint id="clientService"
+        address="{{proxy.service.url}}/ClientService" serviceClass="org.edelia.poc.ws.cxf.ClientService"
+        endpointName="s:ClientServiceImplPort" serviceName="s:ClientServiceImplService"
+        wsdlURL="ClientService.wsdl" xmlns:s="http://cxf.ws.poc.edelia.org/" />
+
+
+    <!-- Real Web Service ClientService on Tomcat ex:http://localhost:8080/wsPoc-1 -->
+    <cxf:cxfEndpoint id="realClientService"
+        address="{{real.service.url}}/ClientService" serviceClass="org.edelia.poc.ws.cxf.ClientService"
+        endpointName="s:ClientServiceImplPort" serviceName="s:ClientServiceImplService"
+        wsdlURL="ClientService.wsdl" xmlns:s="http://cxf.ws.poc.edelia.org/" />
+
+
+</beans>

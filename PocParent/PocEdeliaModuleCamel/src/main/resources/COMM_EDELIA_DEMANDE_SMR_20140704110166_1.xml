@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p:DemandesSMR xsi:type="p:DemandesSMR" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.edelia.fr">
+  <demandeSMR>
+    <ts>2014-03-27T15:54:00Z</ts>
+    <type>SouscriptionOffreDeService</type>
+    <client>
+      <id>6100000166</id>
+      <civilite>M.</civilite>
+      <prenom>Prenom166St</prenom>
+      <nom>Nom166St</nom>
+      <numeroRue>30</numeroRue>
+      <rue>Avenue de Versailles</rue>
+      <codePostal>75016</codePostal>
+      <commune>Paris</commune>
+      <pays>France</pays>
+      <telFixe>0101020304</telFixe>
+      <telPortable>0601020304</telPortable>
+      <email>clement.guillou@steria.com</email>
+      <parametres>
+        <parametre>
+          <clef>age</clef>
+          <valeur>30</valeur>
+        </parametre>
+        <parametre>
+          <clef>fax</clef>
+          <valeur>0903040102</valeur>
+        </parametre>
+      </parametres>
+    </client>
+    <site>
+      <pdl>61000000000166</pdl>
+      <numeroRue>30</numeroRue>
+      <rue>Avenue de Versailles</rue>
+      <codePostal>75016</codePostal>
+      <commune>Paris</commune>
+      <pays>France</pays>
+      <phases>3</phases>
+    </site>
+    <offre>
+      <id>6100000166</id>
+      <codeOffre>SER_STEREO</codeOffre>
+	  <statutContratService>CS_VALIDE</statutContratService>
+      <idContratService>0987654321</idContratService>
+
+    </offre>
+    <contratFournitureElec>
+      <id>61166</id>
+      <numAccordCommercial>610000000166</numAccordCommercial>
+      <tarif>BLEU</tarif>
+      <optionTarifaire>BASE</optionTarifaire>
+      <puissanceSouscrite>9</puissanceSouscrite>
+      <categorieTPN>NON_TPN</categorieTPN>
+      <dtr>2013-12-31</dtr>
+    </contratFournitureElec>
+  </demandeSMR>
+</p:DemandesSMR>

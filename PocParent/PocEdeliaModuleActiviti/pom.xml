@@ -1,0 +1,166 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.edelia.poc</groupId>
+		<artifactId>PocParent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+	<groupId>org.edelia.poc.activiti</groupId>
+	<artifactId>PocEdeliaModuleActiviti</artifactId>
+	<packaging>jar</packaging>
+	<name>Edelia Module Activiti</name>
+	<description>Activiti Project deploy BPMN 2.0 Diagrams</description>
+
+
+
+	<repositories>
+		<repository>
+			<id>restlet</id>
+			<url>http://maven.restlet.com/</url>
+		</repository>
+	</repositories>
+
+
+	<dependencies>
+
+		<!-- Activiti dependencies -->
+		<dependency>
+			<groupId>org.activiti</groupId>
+			<artifactId>activiti-engine</artifactId>
+			<version>${activiti.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.activiti</groupId>
+			<artifactId>activiti-spring</artifactId>
+			<version>${activiti.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.activiti</groupId>
+			<artifactId>activiti-camel</artifactId>
+			<version>${activiti.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>${groovy.version}</version>
+		</dependency>
+
+		<!-- Unit & integration test dependencies -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${h2.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Restlet -->
+		<dependency>
+			<groupId>org.restlet.jee</groupId>
+			<artifactId>org.restlet</artifactId>
+			<version>${restlet.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.restlet.jee</groupId>
+			<artifactId>org.restlet.ext.httpclient</artifactId>
+			<version>${restlet.version}</version>
+		</dependency>
+
+
+	</dependencies>
+
+
+	<build>
+
+		<plugins>
+			<!-- plugin for generate client -->
+			<plugin>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-codegen-plugin</artifactId>
+				<version>${cxf.version}</version>
+				<executions>
+					<execution>
+						<id>generate-sources</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<sourceRoot>generated/cxf</sourceRoot>
+							<wsdlOptions>
+								<wsdlOption>
+									<wsdl>src/main/resources/ClientService.wsdl</wsdl>
+									<wsdlLocation>classpath:ClientService.wsdl</wsdlLocation>
+								</wsdlOption>
+							</wsdlOptions>
+						</configuration>
+						<goals>
+							<goal>wsdl2java</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Suppression des process dans le build par defaut -->
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/process/</exclude>
+					</excludes>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<!-- mainClass>com.myapp.MainClass</mainClass -->
+						</manifest>
+					</archive>
+				</configuration>
+
+			</plugin>
+			
+			
+			
+			<!-- Création du fichier Business Archive (BAR) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.3</version>
+				<executions>
+					<execution>
+						<id>create-par</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<echo
+									message="Creating bar: ${project.build.directory}/${project.artifactId}-${project.version}.bar" />
+								<zip
+									destfile="${project.build.directory}/${project.artifactId}-${project.version}.bar">
+									<fileset dir="src/main/resources/process">
+										<include name="**/*.bpmn" />
+									</fileset>
+								</zip>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+		</plugins>
+
+
+
+
+	</build>
+
+
+
+</project>

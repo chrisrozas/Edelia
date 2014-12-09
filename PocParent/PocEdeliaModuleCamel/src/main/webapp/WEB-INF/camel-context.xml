@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:cxf="http://camel.apache.org/schema/cxf"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring
+       http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/util 
+       http://www.springframework.org/schema/util/spring-util.xsd 
+       http://camel.apache.org/schema/cxf 
+       http://camel.apache.org/schema/cxf/camel-cxf.xsd 
+       http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+
+	<!-- Processor -->
+	<bean id="activitiContextProcessor" class="org.edelia.poc.processor.ActivitiContextProcessor" />
+	<bean id="variablesSignal" class="org.edelia.poc.processor.VariablesSignalProcessor" />
+	<bean id="infoFileProcessor" class="org.edelia.poc.processor.InfoFileProcessor" />
+	<bean id="jsonArrayListProcessor" class="org.edelia.poc.processor.JsonArrayListProcessor" />
+	<bean id="cxfResponseProcessor" class="org.edelia.poc.processor.CXFResponseProcessor" />
+	<bean id="responseProcessor" class="org.edelia.poc.processor.ResponseProcessor" />
+
+
+
+
+	<!-- Error -->
+	<bean id="loggingErrorHandler" class="org.apache.camel.builder.LoggingErrorHandlerBuilder">
+		<property name="logName" value="logger.error" />
+		<property name="level" value="DEBUG" />
+	</bean>
+
+	<!-- For decypt password -->
+	<bean id="jasypt"
+		class="org.apache.camel.component.jasypt.JasyptPropertiesParser">
+		<property name="password" value="edelia" />
+	</bean>
+
+	<bean id="restlet" class="org.apache.camel.component.restlet.RestletComponent">
+		<property name="maxThreads" value="${restlet.max.threads}" />
+		<property name="maxConnectionsPerHost" value="${restlet.max.host.conn}" />		
+	</bean>
+
+
+
+	<!-- Formatage CSV -->
+	<bean id="bindyDataformat"
+		class="org.apache.camel.dataformat.bindy.csv.BindyCsvDataFormat">
+		<!-- arg du contructeur est un nom de package pas de Class -->
+		<constructor-arg value="org.edelia.poc.beans" />
+	</bean>
+
+
+	<camel:threadPool id="wireTapePoolThreadId"
+		threadName="wireTapePoolThread" poolSize="${thread.pool.size}"
+		maxPoolSize="${thread.pool.max.size}" maxQueueSize="${thread.pool.max.queue}" />
+
+	<!-- ********************* CONTEXT CAMEL ************** -->
+
+	<!-- Camel Context -->
+	<camelContext xmlns="http://camel.apache.org/schema/spring"
+		xmlns:util="http://www.springframework.org/schema/util" xmlns:p="http://www.edelia.fr">
+
+
+
+
+
+		<camel:propertyPlaceholder id="properties"
+			location="classpath:camelContext.properties" propertiesParserRef="jasypt" />
+
+		<!-- Retry 2 times send process BPM -->
+		<camel:errorHandler id="errorHandleRetryAndLog"
+			type="LoggingErrorHandler" level="ERROR">
+			<camel:redeliveryPolicy maximumRedeliveries="${error.handle.max.redelivery}"
+				delayPattern="${error.handle.delay}" />
+		</camel:errorHandler>
+
+		<!-- dataFormat JSON -->
+		<dataFormats>
+			<json id="jackJson" library="Jackson" unmarshalTypeName="org.edelia.poc.beans.Client" />
+			<jaxb id="jaxb" contextPath="org.edelia.poc.beans" />
+		</dataFormats>
+
+
+
+
+
+		<!-- ********************* 1 ************** -->
+
+		<!-- File Consumer -->
+		<route id="File-to-SplitProcess" startupOrder="60">
+			<camel:from
+				uri="file://{{dir.start}}?include={{file.regex.include}}&amp;move={{dir.done}}&amp;moveFailed={{dir.fail}}&amp;delay={{file.consumer.delay}}&amp;maxMessagesPerPoll={{file.consumer.max.messages.per.poll}}" />
+			<wireTap uri="direct:log" />
+			<camel:to uri="direct:Router" />
+		</route>
+
+
+
+		<!-- Router -->
+		<route id="Router-to-Process" startupOrder="50">
+			<from uri="direct:Router" />
+			<choice>
+				<when>
+					<xpath>/p:DemandesSMR/demandeSMR/type = 'SouscriptionOffreDeService'</xpath>
+					<to uri="direct:processSplit" />
+				</when>
+				<otherwise>
+					<camel:log message="************* NO PROCESS EXECUTE ***************"
+						logName="org.edelia.poc.routes.info.log" />
+				</otherwise>
+			</choice>
+		</route>
+
+
+
+
+
+		<!-- PROCESS -->
+		<!-- Split Process -->
+		<route id="ProcessSplit-to-ProcessDemandeSMR" startupOrder="40">
+			<camel:from uri="direct:processSplit" />
+			<camel:split parallelProcessing="true" streaming="true">
+				<camel:tokenize token="{{split.balise.smr}}" xml="true"
+					trim="true" />
+				<wireTap uri="direct:log" />
+				<camel:to uri="direct:ProcessDemandeSMR" />
+			</camel:split>
+		</route>
+
+
+		<!-- Process for DemandeSMR -->
+		<route id="ProcessDemandeSMR-to-Activiti" startupOrder="30">
+			<camel:from uri="direct:ProcessDemandeSMR" />
+			<unmarshal ref="jaxb" />
+			<wireTap uri="direct:log" />
+			<camel:setHeader headerName="processDefinitionKey">
+				<constant>{{activiti.process.name.demadeSMR}} </constant>
+			</camel:setHeader>			
+			<camel:process ref="activitiContextProcessor" />
+			<marshal ref="jackJson" />
+			<camel:setHeader headerName="actionActivitiRest">
+				<constant>restlet:{{activit.rest.url}}/{{activit.rest.action.start}}</constant>
+			</camel:setHeader>
+			<camel:to uri="direct:ActivitiProcess" />
+		</route>
+
+
+
+		<!-- Send to Activiti-rest Server -->
+		<route id="Camel-to-RestActiviti" startupOrder="20"
+			errorHandlerRef="errorHandleRetryAndLog">
+			<camel:from uri="direct:ActivitiProcess" />
+
+			<!-- save context if Error -->
+			<camel:onCompletion onFailureOnly="true">
+				<camel:log
+					message=")))))) CALL ACTIVITI-REST KO  url:= ${in.headers[actionActivitiRest]} ((((((((  ***************"
+					logName="org.edelia.poc.routes.info.log" />
+			</camel:onCompletion>
+
+			<!-- set header with info for request process -->
+			<camel:setHeader headerName="Accept">
+				<constant>{{http.header.application.json}} </constant>
+			</camel:setHeader>
+			<camel:setHeader headerName="Content-Type">
+				<constant>{{http.header.application.json}} </constant>
+			</camel:setHeader>
+			<camel:setHeader headerName="CamelRestletLogin">
+				<constant>{{activiti.auth.login}}</constant>
+			</camel:setHeader>
+			<camel:setHeader headerName="CamelRestletPassword">
+				<constant>{{activiti.auth.password}}</constant>
+			</camel:setHeader>
+
+			<!-- Call process BPM via Activiti Rest api -->
+			<!-- 
+			<camel:throttle timePeriodMillis="2000">
+				<camel:constant>{{throttle.msg.max}}</camel:constant>
+				-->
+				<recipientList>
+					<header>actionActivitiRest</header>
+				</recipientList>
+			<!-- 	
+			</camel:throttle>
+			 -->
+
+			<camel:log
+				message="**** CALL ACTIVITI-REST OK ---- RESPONSE :'${in.body}'****"
+				logName="org.edelia.poc.routes.info.log" />
+
+		</route>
+
+
+		<!-- #################### PROXY WEB SERVICE ######################### -->
+
+		<!-- Web Service Proxy SOAP to SOAP Consumer http://localhost:9023/ClientService -->
+		<route id="wsCamelproxy-to-Realws" startupOrder="80">
+			<from uri="cxf:bean:clientService" />
+			<camel:log message="************* Call Ws Camel Proxy  ***************"
+				logName="org.edelia.poc.routes.info.log" />
+			<!-- Call Real Web Service http://localhost:9080/ClientService -->
+			<to uri="cxf:bean:realClientService" />
+		</route>
+
+
+		<!-- Web Service Bridge REST to SOAP Consumer http://localhost:9023/ClientService -->
+		<route id="bridge-Rest-to-SOAPRealws" startupOrder="81">
+
+			<camel:from
+				uri="restlet:{{route.rest.url.activation}}?restletMethod=post" />
+
+			<!-- save context if Error -->
+			<camel:onCompletion onFailureOnly="true">
+				<camel:setHeader headerName="CamelHttpResponseCode">
+					<constant>500</constant>
+				</camel:setHeader>
+				<camel:transform>
+					<camel:constant>KO</camel:constant>
+				</camel:transform>
+			</camel:onCompletion>
+
+			<camel:wireTap uri="direct:callWsActivation" executorServiceRef="wireTapePoolThreadId" />
+			<camel:process ref="responseProcessor" />
+		</route>
+
+
+		<route id="Rest-to-SOAPRealws" startupOrder="79">
+			<camel:from uri="direct:callWsActivation" />
+
+			<camel:process ref="jsonArrayListProcessor" />
+			<removeHeaders pattern="org.restlet.http.headers" />
+
+			<!-- Call Real Web Service http://localhost:9080/ClientService -->
+			<to
+				uri="cxf:bean:realClientService?defaultOperationName=modificationClient" />
+
+		</route>
+
+
+
+
+
+		<!-- #################### ACTIVATION ##############################" -->
+
+
+		<!-- Route Activation timer -->
+		<route id="timer-to-SQL-to-RestSignal" startupOrder="100">
+			<from
+				uri="timer:ActivationTimer?period={{timer.period}}&amp;fixedRate=true&amp;delay={{timer.delay}}" />
+			<!--camel:log message="************* Timer de {{timer.period}} ***************" 
+				logName="org.edelia.poc.routes.info.log" / -->
+
+			<to uri="sql:{{sql.client.to.activated}}" />
+			<camel:split>
+				<simple>${body}</simple>
+				<camel:setHeader headerName="actionActivitiRest">
+					<constant>restlet:{{activit.rest.url}}/{{activit.rest.action.signal}}</constant>
+				</camel:setHeader>
+				<camel:process ref="variablesSignal" />
+
+				<to uri="direct:ActivitiProcess" />
+			</camel:split>
+
+		</route>
+
+
+
+
+		<!-- rest Consumer htt://localhost:9023/Rest -->
+		<route id="restCreateFile-to-Response" startupOrder="120">
+			<camel:from
+				uri="restlet:{{route.rest.url.createCSVFile}}?restletMethod=post" />
+
+			<!-- direct Create CSV File -->
+			<wireTap uri="direct:createCSVFile" executorServiceRef="wireTapePoolThreadId" />
+
+			<camel:process ref="responseProcessor" />
+			<camel:log
+				message="************* Consumer REST OK  RESPONSE :${in.body} ***************"
+				logName="org.edelia.poc.routes.info.log" />
+		</route>
+
+
+
+		<route id="rest-to-csvFile" startupOrder="140">
+			<from uri="direct:createCSVFile" />
+			<camel:unmarshal ref="jackJson" />
+			<camel:process id="InfoFile" ref="infoFileProcessor" />
+			<marshal ref="bindyDataformat" />
+			<camel:to
+				uri="file://{{dir.end}}?fileName=${headers[idClient]}_{{file.pattern}}" />
+			<camel:log message="************* File CREATE ***************"
+				logName="org.edelia.poc.routes.info.log" />
+		</route>
+
+
+		<!-- #################### END ACTIVATION ##############################" -->
+
+
+
+		<!-- log Process -->
+		<route id="LogWiretap" startupOrder="10">
+			<camel:from uri="direct:log" />
+
+			<!-- camel:log message="BODY ${body}" / -->
+			<camel:log
+				message="-- WireTape-- HEADERS := ${in.headers} Body:=${in.body}  "
+				loggingLevel="DEBUG" />
+		</route>
+
+	</camelContext>
+
+
+</beans>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p:DemandesSMR xsi:type="p:DemandesSMR" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.edelia.fr">
+  <demandeSMR>
+    <ts>2014-06-24T17:36:32Z</ts>
+    <type>SouscriptionOffreDeService</type>
+    <client>
+      <id>6004830376</id>
+      <civilite>Mme</civilite>
+      <prenom>P2</prenom>
+      <nom>N2</nom>
+      <numeroRue>2</numeroRue>
+      <rue>rue des vosges</rue>
+      <codePostal>75002</codePostal>
+      <commune>Paris</commune>
+      <pays>France</pays>
+      <telFixe>0101000002</telFixe>
+      <telPortable>0601000002</telPortable>
+      <email>P2.N2@gmail.com</email>
+      <parametres>
+        <parametre>
+          <clef>age</clef>
+          <valeur>20</valeur>
+        </parametre>
+        <parametre>
+          <clef>fax</clef>
+          <valeur>0901000002</valeur>
+        </parametre>
+      </parametres>
+    </client>
+    <site>
+      <pdl>19859334257733</pdl>
+      <numeroRue>2</numeroRue>
+      <rue>rue des vosges</rue>
+      <codePostal>75002</codePostal>
+      <commune>Paris</commune>
+      <pays>France</pays>
+      <phases>3</phases>
+    </site>
+    <offre>
+      <id>5555000002</id>
+      <codeOffre>SER_SCORE</codeOffre>
+    </offre>
+    <contratFournitureElec>
+      <id>5000002</id>
+      <numAccordCommercial>004006089067</numAccordCommercial>
+      <tarif>BLEU</tarif>
+      <optionTarifaire>BASE</optionTarifaire>
+      <puissanceSouscrite>6</puissanceSouscrite>
+      <categorieTPN>NON_TPN</categorieTPN>
+      <dtr>2020-12-31</dtr>
+    </contratFournitureElec>
+  </demandeSMR>
+</p:DemandesSMR>

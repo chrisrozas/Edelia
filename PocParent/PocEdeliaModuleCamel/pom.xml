@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>PocParent</artifactId>
+		<groupId>org.edelia.poc</groupId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>PocEdeliaModuleCamel</artifactId>
+	<groupId>org.edelia.poc.camel</groupId>
+
+	<name>Edelia Module Camel web Application</name>
+	<description>Camel project that deploys the Camel routes as a WAR</description>
+	<url>http://www.edelia.fr</url>
+
+	<packaging>war</packaging>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>		
+	</properties>
+
+
+	<repositories>
+		<repository>
+			<id>maven-restlet</id>
+			<name>Public online Restlet repository</name>
+			<url>http://maven.restlet.org</url>
+		</repository>
+	</repositories>
+
+
+	<dependencies>
+
+		<!-- Camel -->
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-restlet</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		
+		<dependency>
+        <groupId>org.restlet.jee</groupId>
+        <artifactId>org.restlet.ext.httpclient</artifactId>
+        <version>${restlet.version}</version>
+</dependency> 
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-sql</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-jackson</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<!-- Encryption de password -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-jasypt</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<!-- Camel dependencies -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-spring</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test-spring</artifactId>
+			<version>${camel.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-jaxb</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+
+
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-gson</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<!-- Convert pojo to CSV -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-bindy</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-cxf</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http-jetty</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.1-901.jdbc4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.2.2</version>
+		</dependency>
+
+		
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-jsonpath</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+
+
+
+	</dependencies>
+
+	<build>
+	<resources>
+	   <resource>
+           <directory>src/main/resources</directory>
+       </resource>
+	   <resource>
+	       <directory>src/main/webapp/WEB-INF</directory>
+	   </resource>
+	</resources>
+		<finalName>webappCamel</finalName>
+		<defaultGoal>install</defaultGoal>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- plugin so you can run mvn jetty:run -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>8.1.14.v20131031</version>
+				<configuration>
+					<webAppConfig>
+						<contextPath>/</contextPath>
+					</webAppConfig>
+					<systemProperties>
+						<!-- enable easy JMX connection to JConsole -->
+						<systemProperty>
+							<name>com.sun.management.jmxremote</name>
+							<value />
+						</systemProperty>
+					</systemProperties>
+					<scanIntervalSeconds>10</scanIntervalSeconds>
+				</configuration>
+			</plugin>
+
+			<!-- plugin for generate client -->
+			<plugin>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-codegen-plugin</artifactId>
+				<version>${cxf.version}</version>
+				<executions>
+					<execution>
+						<id>generate-sources</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<sourceRoot>generated/cxf</sourceRoot>
+							<wsdlOptions>
+								<wsdlOption>
+									<wsdlLocation>http://localhost:8080/wsPoc-1/ClientService?wsdl</wsdlLocation>
+									<wsdl>${basedir}/src/main/resources/ClientService.wsdl</wsdl>
+								</wsdlOption>
+							</wsdlOptions>
+						</configuration>
+						<goals>
+							<goal>wsdl2java</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+ 
+   <property resource="camelContext.properties" />
+  
+ 
+ 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </layout>
+  </appender>
+  
+   <!-- info Routes --> 
+   <logger name="org.edelia.poc.routes.info.log" level="info"/>
+   
+
+  
+  <!-- Spring -->
+  <logger name="org.springframework.beans" level="info"/>
+  <logger name="org.springframework.test" level="OFF"/>
+
+  <!-- Camel -->
+  <logger name="org.apache.camel" level="info"/>
+  
+  <!-- cxf  -->
+   <logger name="org.apache.cxf" level="info"/>
+
+<logger name="org.restlet.ext" level="debug"/>
+ 
+  <root level="info" >
+    <appender-ref ref="STDOUT"   />
+    
+  </root>
+</configuration>

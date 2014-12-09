@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsd="http://www.w3.org/2001/XMLSchema" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <signal id="ActivationClientModif" name="ActivationClientModif"></signal>
+  <process id="Process_Service_Offer_Commissioning" name="OT05  Service Offer Commissioning" isExecutable="true">
+    <startEvent id="startevent1" name="Start">
+      <extensionElements>
+        <activiti:formProperty id="client_id" name="client_id"></activiti:formProperty>
+        <activiti:formProperty id="client_nom" name="client_nom"></activiti:formProperty>
+        <activiti:formProperty id="client_prenom" name="client_prenom"></activiti:formProperty>
+        <activiti:formProperty id="client_email" name="client_email"></activiti:formProperty>
+        <activiti:formProperty id="client_etat" name="client_etat" writable="false"></activiti:formProperty>
+        <activiti:executionListener event="start" class="org.activiti.poc.service.PerformencesListener"></activiti:executionListener>
+        <activiti:executionListener event="start" class="org.activiti.poc.service.InfoProcessListener"></activiti:executionListener>
+        <activiti:executionListener event="start" class="org.activiti.poc.service.ActivationCustomerRESTTask"></activiti:executionListener>
+      </extensionElements>
+    </startEvent>
+    <scriptTask id="scripttask1" name="Debut Souscription" activiti:async="true" scriptFormat="javascript" activiti:autoStoreVariables="false">
+      <script>java.lang.System.out.println(" *********************************" )  ;
+java.lang.System.out.println(" ***   Start Process Souscription *** ");
+java.lang.System.out.println(" ********************************* " )  ;
+
+
+</script>
+    </scriptTask>
+    <sequenceFlow id="flow6" sourceRef="startevent1" targetRef="scripttask1"></sequenceFlow>
+    <userTask id="usertask1" name="Formulaire   Ajout details Additionnels" activiti:assignee="kermit">
+      <documentation>Validation  Client</documentation>
+      <extensionElements>
+        <activiti:formProperty id="client_id" name="client_id" expression="#{contextActiviti.client.id}"></activiti:formProperty>
+        <activiti:formProperty id="client_nom" name="client_nom" expression="#{contextActiviti.client.nom}"></activiti:formProperty>
+        <activiti:formProperty id="client_prenom" name="client_prenom" expression="#{contextActiviti.client.prenom}"></activiti:formProperty>
+        <activiti:formProperty id="client_email" name="client_email" expression="#{contextActiviti.client.email}"></activiti:formProperty>
+        <activiti:formProperty id="client_etat" name="client_etat" expression="#{contextActiviti.client.etat}" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="MessageErreur" name="MessageErreur"></activiti:formProperty>
+        <activiti:formProperty id="ts" name="ts"></activiti:formProperty>
+        <activiti:formProperty id="type" name="type"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <subProcess id="subprocess1" name="Enregistrement Souscription">
+      <startEvent id="startevent2" name="Start"></startEvent>
+      <exclusiveGateway id="exclusivegateway2" name="Exclusive Gateway">
+        <documentation>Enregistrement OK</documentation>
+      </exclusiveGateway>
+      <sequenceFlow id="responseWsOK" name="Ws OK" sourceRef="exclusivegateway2" targetRef="endevent3">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${responseWs=='OK'}]]></conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="responseWsKO" name="Ws KO" sourceRef="exclusivegateway2" targetRef="errorendevent1">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${responseWs=='KO'}]]></conditionExpression>
+      </sequenceFlow>
+      <endEvent id="errorendevent1" name="ErrorEnd">
+        <errorEventDefinition errorRef="WSKO"></errorEventDefinition>
+      </endEvent>
+      <endEvent id="endevent3" name="End"></endEvent>
+      <serviceTask id="servicetaskWsCreate" name="Souscription Ws Creation" activiti:class="org.activiti.poc.service.SouscriptionCustomerTask">
+        <documentation>Appel un Web Service  : SOAP to SOAP
+proxy de Camel http://localhost:9090/
+Real  http://localhost:8080/wsPoc-1/</documentation>
+      </serviceTask>
+      <sequenceFlow id="flow31" sourceRef="startevent2" targetRef="servicetaskWsCreate"></sequenceFlow>
+      <sequenceFlow id="flow32" sourceRef="servicetaskWsCreate" targetRef="exclusivegateway2"></sequenceFlow>
+    </subProcess>
+    <boundaryEvent id="boundaryerror1" name="Error" attachedToRef="subprocess1">
+      <errorEventDefinition errorRef="WSKO"></errorEventDefinition>
+    </boundaryEvent>
+    <sequenceFlow id="flow19" name="Erreur  Souscription" sourceRef="boundaryerror1" targetRef="usertask1"></sequenceFlow>
+    <sequenceFlow id="flow21" sourceRef="subprocess1" targetRef="OTK01"></sequenceFlow>
+    <sequenceFlow id="flow22" sourceRef="usertask1" targetRef="subprocess1"></sequenceFlow>
+    <endEvent id="endevent4" name="End">
+      <extensionElements>
+        <activiti:executionListener event="start" class="org.activiti.poc.service.PerformencesListener"></activiti:executionListener>
+      </extensionElements>
+    </endEvent>
+    <sequenceFlow id="flow27" sourceRef="servicetask1" targetRef="endevent4"></sequenceFlow>
+    <serviceTask id="servicetaskWsModif" name="Activaction Ws Modification Client" activiti:async="true" activiti:class="org.activiti.poc.service.ActivationCustomerRESTTask"></serviceTask>
+    <intermediateCatchEvent id="SignalCatchEvent" name="SignalCatchEvent">
+      <documentation>Procesus Suspendu En Attente d'Activation . signals  processus est activé par un signal envoyé par un web service REST :url:http://localhost:8080/activiti-rest/service/runtime/signals</documentation>
+      <extensionElements>
+        <activiti:executionListener event="start" class="org.activiti.poc.service.PerformencesListener"></activiti:executionListener>
+      </extensionElements>
+      <signalEventDefinition signalRef="ActivationClientModif"></signalEventDefinition>
+    </intermediateCatchEvent>
+    <sequenceFlow id="flow33" sourceRef="OTK01" targetRef="SignalCatchEvent"></sequenceFlow>
+    <serviceTask id="servicetask1" name="Creation fichier CSV" activiti:async="true" activiti:class="org.activiti.poc.service.SendRestRequestTask">
+      <documentation>Appel un Web Service  :REST 
+Pour la creation d'un fichier</documentation>
+    </serviceTask>
+    <sequenceFlow id="flow39" sourceRef="servicetaskWsModif" targetRef="servicetask1"></sequenceFlow>
+    <sequenceFlow id="flow40" sourceRef="scripttask1" targetRef="subprocess1"></sequenceFlow>
+    <callActivity id="OTK01" name="Sub Processe Provisionning" calledElement="SubProcessProvisionning">
+      <extensionElements>
+        <activiti:in source="contextActiviti" target="contextActiviti"></activiti:in>
+      </extensionElements>
+    </callActivity>
+    <scriptTask id="scripttask2" name="Wake Up Process" scriptFormat="javascript" activiti:autoStoreVariables="false">
+      <script>java.lang.System.out.println("Wake up process  " );
+</script>
+    </scriptTask>
+    <sequenceFlow id="flow41" sourceRef="SignalCatchEvent" targetRef="scripttask2"></sequenceFlow>
+    <sequenceFlow id="flow42" sourceRef="scripttask2" targetRef="servicetaskWsModif"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_Service_Offer_Commissioning">
+    <bpmndi:BPMNPlane bpmnElement="Process_Service_Offer_Commissioning" id="BPMNPlane_Process_Service_Offer_Commissioning">
+      <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="160.0" y="247.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="scripttask1" id="BPMNShape_scripttask1">
+        <omgdc:Bounds height="60.0" width="100.0" x="260.0" y="235.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask1" id="BPMNShape_usertask1">
+        <omgdc:Bounds height="60.0" width="100.0" x="732.0" y="440.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subprocess1" id="BPMNShape_subprocess1">
+        <omgdc:Bounds height="200.0" width="390.0" x="470.0" y="164.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="startevent2" id="BPMNShape_startevent2">
+        <omgdc:Bounds height="35.0" width="35.0" x="490.0" y="249.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway2" id="BPMNShape_exclusivegateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="720.0" y="244.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="errorendevent1" id="BPMNShape_errorendevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="810.0" y="314.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent3" id="BPMNShape_endevent3">
+        <omgdc:Bounds height="35.0" width="35.0" x="810.0" y="184.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="servicetaskWsCreate" id="BPMNShape_servicetaskWsCreate">
+        <omgdc:Bounds height="60.0" width="100.0" x="570.0" y="234.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="boundaryerror1" id="BPMNShape_boundaryerror1">
+        <omgdc:Bounds height="30.0" width="30.0" x="767.0" y="349.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent4" id="BPMNShape_endevent4">
+        <omgdc:Bounds height="35.0" width="35.0" x="1416.0" y="679.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="servicetaskWsModif" id="BPMNShape_servicetaskWsModif">
+        <omgdc:Bounds height="60.0" width="100.0" x="1181.0" y="532.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="SignalCatchEvent" id="BPMNShape_SignalCatchEvent">
+        <omgdc:Bounds height="35.0" width="35.0" x="1212.0" y="245.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="servicetask1" id="BPMNShape_servicetask1">
+        <omgdc:Bounds height="60.0" width="100.0" x="1180.0" y="667.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="OTK01" id="BPMNShape_OTK01">
+        <omgdc:Bounds height="81.0" width="140.0" x="960.0" y="222.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="scripttask2" id="BPMNShape_scripttask2">
+        <omgdc:Bounds height="55.0" width="105.0" x="1178.0" y="380.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="195.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="260.0" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="responseWsOK" id="BPMNEdge_responseWsOK">
+        <omgdi:waypoint x="760.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="772.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="772.0" y="199.0"></omgdi:waypoint>
+        <omgdi:waypoint x="810.0" y="201.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="13.0" width="33.0" x="1248.0" y="376.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="responseWsKO" id="BPMNEdge_responseWsKO">
+        <omgdi:waypoint x="760.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="772.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="772.0" y="329.0"></omgdi:waypoint>
+        <omgdi:waypoint x="810.0" y="331.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="13.0" width="33.0" x="1248.0" y="451.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow31" id="BPMNEdge_flow31">
+        <omgdi:waypoint x="525.0" y="266.0"></omgdi:waypoint>
+        <omgdi:waypoint x="570.0" y="264.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow32" id="BPMNEdge_flow32">
+        <omgdi:waypoint x="670.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="720.0" y="264.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow19" id="BPMNEdge_flow19">
+        <omgdi:waypoint x="782.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="782.0" y="389.0"></omgdi:waypoint>
+        <omgdi:waypoint x="782.0" y="440.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="13.0" width="91.0" x="792.0" y="379.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow21" id="BPMNEdge_flow21">
+        <omgdi:waypoint x="860.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="872.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="960.0" y="262.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow22" id="BPMNEdge_flow22">
+        <omgdi:waypoint x="732.0" y="470.0"></omgdi:waypoint>
+        <omgdi:waypoint x="432.0" y="469.0"></omgdi:waypoint>
+        <omgdi:waypoint x="432.0" y="362.0"></omgdi:waypoint>
+        <omgdi:waypoint x="432.0" y="264.0"></omgdi:waypoint>
+        <omgdi:waypoint x="470.0" y="264.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow27" id="BPMNEdge_flow27">
+        <omgdi:waypoint x="1280.0" y="697.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1416.0" y="696.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow33" id="BPMNEdge_flow33">
+        <omgdi:waypoint x="1100.0" y="262.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1212.0" y="262.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow39" id="BPMNEdge_flow39">
+        <omgdi:waypoint x="1231.0" y="592.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1230.0" y="667.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow40" id="BPMNEdge_flow40">
+        <omgdi:waypoint x="360.0" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="470.0" y="264.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow41" id="BPMNEdge_flow41">
+        <omgdi:waypoint x="1229.0" y="280.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1230.0" y="380.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow42" id="BPMNEdge_flow42">
+        <omgdi:waypoint x="1230.0" y="435.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1231.0" y="532.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

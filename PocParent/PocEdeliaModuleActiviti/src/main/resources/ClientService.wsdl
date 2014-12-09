@@ -1,0 +1,142 @@
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://cxf.ws.poc.edelia.org/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="ClientServiceImplService" targetNamespace="http://cxf.ws.poc.edelia.org/">
+  <wsdl:types>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://cxf.ws.poc.edelia.org/" elementFormDefault="unqualified" targetNamespace="http://cxf.ws.poc.edelia.org/" version="1.0">
+
+  <xs:element name="creationClient" type="tns:creationClient"/>
+
+  <xs:element name="creationClientResponse" type="tns:creationClientResponse"/>
+
+  <xs:element name="modificationClient" type="tns:modificationClient"/>
+
+  <xs:element name="modificationClientResponse" type="tns:modificationClientResponse"/>
+
+  <xs:element name="rechercheParNom" type="tns:rechercheParNom"/>
+
+  <xs:element name="rechercheParNomResponse" type="tns:rechercheParNomResponse"/>
+
+  <xs:complexType name="modificationClient">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="client" type="tns:client"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="client">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="email" type="xs:string"/>
+      <xs:element minOccurs="0" name="etat" type="xs:string"/>
+      <xs:element minOccurs="0" name="id" type="xs:string"/>
+      <xs:element minOccurs="0" name="nom" type="xs:string"/>
+      <xs:element minOccurs="0" name="prenom" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="modificationClientResponse">
+    <xs:sequence/>
+  </xs:complexType>
+
+  <xs:complexType name="creationClient">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="client" type="tns:client"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="creationClientResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="rechercheParNom">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="nom" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="rechercheParNomResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="tns:client"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="rechercheParNomResponse">
+    <wsdl:part element="tns:rechercheParNomResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="modificationClientResponse">
+    <wsdl:part element="tns:modificationClientResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="creationClientResponse">
+    <wsdl:part element="tns:creationClientResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="modificationClient">
+    <wsdl:part element="tns:modificationClient" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="creationClient">
+    <wsdl:part element="tns:creationClient" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="rechercheParNom">
+    <wsdl:part element="tns:rechercheParNom" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ClientService">
+    <wsdl:operation name="modificationClient">
+      <wsdl:input message="tns:modificationClient" name="modificationClient">
+    </wsdl:input>
+      <wsdl:output message="tns:modificationClientResponse" name="modificationClientResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="creationClient">
+      <wsdl:input message="tns:creationClient" name="creationClient">
+    </wsdl:input>
+      <wsdl:output message="tns:creationClientResponse" name="creationClientResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="rechercheParNom">
+      <wsdl:input message="tns:rechercheParNom" name="rechercheParNom">
+    </wsdl:input>
+      <wsdl:output message="tns:rechercheParNomResponse" name="rechercheParNomResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ClientServiceImplServiceSoapBinding" type="tns:ClientService">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="modificationClient">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="modificationClient">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="modificationClientResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="creationClient">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="creationClient">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="creationClientResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="rechercheParNom">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="rechercheParNom">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="rechercheParNomResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ClientServiceImplService">
+    <wsdl:port binding="tns:ClientServiceImplServiceSoapBinding" name="ClientServiceImplPort">
+      <soap:address location="http://localhost:8080/wsPoc-1/ClientService"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

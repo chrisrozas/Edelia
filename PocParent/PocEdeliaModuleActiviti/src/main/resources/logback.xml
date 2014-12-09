@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+ 
+ <property resource="placeholder.properties" />
+ 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </layout>
+  </appender>
+  
+    
+  <!-- Performence affiche des log  -->  
+     <logger name="org.activiti.poc.service.PerformencesListener" level="OFF"/>
+   
+   <!-- Activiti -->
+  <logger name="org.activiti.engine" level="info"/>
+  <logger name="org.activiti.spring" level="info"/>
+  
+  <!-- Spring -->
+  <logger name="org.springframework.beans" level="OFF"/>
+  <logger name="org.springframework.test" level="OFF"/>
+  <logger name="org.springframework.jdbc" level="OFF"/>
+  <logger name="org.springframework.core" level="OFF"/>
+  <logger name="org.springframework.context" level="OFF"/>
+  <logger name="org.springframework.transaction" level="OFF"/>
+  <logger name="org.springframework.aop" level="OFF"/>
+  
+  
+  
+  <!-- ibastis -->
+  <logger name="org.apache.ibatis" level="off"/>
+  
+ 
+  <root level="debug" >
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
